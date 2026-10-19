@@ -1,26 +1,19 @@
+import asyncio
+import os
+import ssl
+import certifi
+
 from dotenv import load_dotenv
 from langchain_chroma import Chroma
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
-from langchain_text_splitters import CharacterTextSplitter
-from langchain_unstructured import UnstructuredLoader
+from langchain_core.documents import Document
+from typing import Any, Dict, List
 
-load_dotenv()
+
+async def main():
+    """Main async function to orchestrate the entire process."""
+
 
 if __name__ == "__main__":
-    print("Loading...")
-    documents = UnstructuredLoader("mediumblog1.txt").load()
-
-    print("Splitting...")
-    chunks = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0).split_documents(
-        documents
-    )
-    print(f"Created {len(chunks)} chunks")
-
-    print("Ingesting...")
-    Chroma.from_documents(
-        documents=chunks,
-        embedding=OpenAIEmbeddings(),
-        collection_name="medium-blogs",
-        persist_directory="./chroma_db",
-    )
-    print(f"Ingested {len(chunks)} chunks")
+    asyncio.run(main())
