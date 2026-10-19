@@ -33,6 +33,19 @@ tavily_crawl = TavilyCrawl()
 
 async def main():
     """Main async function to orchestrate the entire process."""
+    log_header("DOCUMENTATION INGESTION PILELINE")
+    log_info(
+        "** TavilyCrawl: Starting to Crawl documentation from https://python.langchain.com/",
+        Colors.PULPLE,
+    )
+
+    res = tavily_crawl.invoke(
+        {
+            "url": "https://python.langchain.com/",
+            "max_depth": 5,
+            "extract_depth": "advanced",
+        }
+    )
 
 
 if __name__ == "__main__":
