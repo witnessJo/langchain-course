@@ -46,6 +46,10 @@ async def main():
             "extract_depth": "advanced",
         }
     )
+    all_docs = res["results"]
+    log_success(
+        f"TavilyCrawl: Successfully crawled {len(all_docs)} URLs from documentation site"
+    )
 
 
 if __name__ == "__main__":
