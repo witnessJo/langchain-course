@@ -7,13 +7,19 @@ from langchain_unstructured import UnstructuredLoader
 load_dotenv()
 
 if __name__ == "__main__":
+    print("Loading...")
     documents = UnstructuredLoader("mediumblog1.txt").load()
+
+    print("Splitting...")
     chunks = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0).split_documents(
         documents
     )
+    print(f"Created {len(chunks)} chunks")
+
+    print("Ingesting...")
     Chroma.from_documents(
-        chunks,
-        OpenAIEmbeddings(),
+        documents=chunks,
+        embedding=OpenAIEmbeddings(),
         collection_name="medium-blogs",
         persist_directory="./chroma_db",
     )
