@@ -1,4 +1,3 @@
-from rich.color import colors
 import pprint
 
 
