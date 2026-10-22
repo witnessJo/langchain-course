@@ -1,3 +1,6 @@
+from unstructured.partition.pdf_image.pdfminer_processing import (
+    check_annotations_within_element,
+)
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
@@ -56,10 +59,9 @@ def format_docs(docs):
 
 
 def main():
-    query = "What is Pinecone in machin learning?"
+    query = "What is Pinecone in machine learning?"
     chain_with_lcel = create_retrieval_chian_with_lcel()
     result_with_lcel = chain_with_lcel.invoke({"question": query})
-
     print("\nAnswer:")
     print(result_with_lcel)
 
