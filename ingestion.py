@@ -121,7 +121,7 @@ async def main():
 
     url_batches = chunk_urls(list(site_map["results"]), chunk_size=20)
     log_info(
-        f" URL Processing: Split {len(site_map['results'])} URLs info {len(url_batches)} batches"
+        f"URL Processing: Split {len(site_map['results'])} URLs info {len(url_batches)} batches"
     )
 
     # Extract documents from URLs
