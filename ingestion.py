@@ -1,22 +1,23 @@
 import asyncio
 import os
 import ssl
+
 import certifi
 
 # WebBaseLoader asks for this so the site can see who is crawling it, and it
 # checks at import time -- hence before langchain_community comes in below.
 os.environ.setdefault("USER_AGENT", "langchain-course-ingestion/0.1")
 
-from bs4 import BeautifulSoup  # noqa: E402
-from dotenv import load_dotenv  # noqa: E402
-from langchain_chroma import Chroma  # noqa: E402
-from langchain_community.document_loaders import SitemapLoader  # noqa: E402
-from langchain_text_splitters import RecursiveCharacterTextSplitter  # noqa: E402
-from langchain_openai import OpenAIEmbeddings  # noqa: E402
-from langchain_core.documents import Document  # noqa: E402
-from typing import List  # noqa: E402
+from typing import List
 
-from logger import (  # noqa: E402
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+from langchain_chroma import Chroma
+from langchain_community.document_loaders import SitemapLoader
+from langchain_core.documents import Document
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from logger import (
     Colors,
     log_error,
     log_header,
