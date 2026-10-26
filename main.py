@@ -1,3 +1,4 @@
+import pprint
 from unstructured.partition.pdf_image.pdfminer_processing import (
     check_annotations_within_element,
 )

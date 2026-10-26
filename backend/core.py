@@ -1,5 +1,6 @@
+import os
 from annotated_types import doc
-from typing import Act, Dict
+from typing import Any, Dict
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
@@ -16,7 +17,7 @@ embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 # Initialize vector store
 vectorstore = Chroma(persist_directory="chroma_db", embedding_function=embeddings)
 
-model = init_chat_model("gpt-5.2", model_provider="oepnai")
+model = init_chat_model("gpt-5.2", model_provider="openai")
 
 
 @tool(response_format="content_and_artifact")
@@ -28,7 +29,7 @@ def retreive_context(query: str):
         (
             f"Source: {doc.metadata.get('source', 'Unknown')}\n\nContent: {doc.page_content}"  # ty: ignore[unresolved-attribute]
         )
-        for doc in retreive_context
+        for doc in retrieved_docs
     )
 
     return serialized, retrieved_docs
@@ -62,7 +63,7 @@ def run_llm(query: str):
     response = agent.invoke({"message": messages})
 
     # Extract the answer from the last AI message
-    answer = response["mesages"][-1].content
+    answer = response["messages"][-1].content
 
     context_docs = []
     for message in response["messages"]:
