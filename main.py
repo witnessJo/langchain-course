@@ -1,71 +1,69 @@
-import pprint
-from unstructured.partition.pdf_image.pdfminer_processing import (
-    check_annotations_within_element,
-)
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
-from dotenv import load_dotenv
-from langchain_core.prompts import ChatMessagePromptTemplate, ChatPromptTemplate
-from langchain_core.messages import HumanMessage
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_chroma import Chroma
+from typing import Any, Dict, List
 
-import os
-from operator import itemgetter
+import streamlit as st
 
-load_dotenv()
-
-print("Initializing components...")
-
-embeddings = OpenAIEmbeddings()
-llm = ChatOpenAI()
-vectorstore = Chroma(
-    collection_name="medium-blogs",
-    embedding_function=embeddings,
-    persist_directory="./chroma_db",
-)
-
-retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
-
-prompt_template = ChatPromptTemplate.from_template(
-    """Answer the question based only on the follwing context:
-
-{context}
-
-Question: {question}
-
-Provide a detailed answer:"""
-)
+from backend.core import run_llm
 
 
-def create_retrieval_chian_with_lcel():
-    """
-    Create a retrieval chain using LCEL (LangChain Expression Language).
-    Return a chian that can be invoked with {"question": "..."}
-    """
-    retrieval_chain = (
-        RunnablePassthrough.assign(
-            context=itemgetter("question") | retriever | format_docs
-        )
-        | prompt_template
-        | llm
-        | StrOutputParser()
-    )
-    return retrieval_chain
+def _format_sources(context_docs: List[Any]) -> List[str]:
+    return [
+        str(meta.get("source") or "Unknown")
+        for doc in (context_docs or [])
+        if (meta := (getattr(doc, "metadata", None) or {})) is not None
+    ]
 
 
-def format_docs(docs):
-    """Format retrieved documents into a single string."""
-    return "\n\n".join(doc.page_content for doc in docs)
+st.set_page_config(page_title="LangChain Documentation Helper", layout="centered")
+st.title("LangChain Documentation Helper")
 
+with st.sidebar:
+    st.subheader("Session")
+    if st.button("Clear chat", width="stretch"):
+        st.session_state.pop("messages", None)
+        st.rerun()
 
-def main():
-    query = "What is Pinecone in machine learning?"
-    chain_with_lcel = create_retrieval_chian_with_lcel()
-    result_with_lcel = chain_with_lcel.invoke({"question": query})
-    print("\nAnswer:")
-    print(result_with_lcel)
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {
+            "role": "assistant",
+            "content": "Ask me anything about LangChain docs. I'll retrieve relevant context and cite sources.",
+            "sources": ["www.langchain.com", "www.anthropic.com"],
+        }
+    ]
 
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+        if msg.get("sources"):
+            with st.expander("Sources"):
+                for s in msg["sources"]:
+                    st.markdown(f"- {s}")
 
-if __name__ == "__main__":
-    main()
+prompt = st.chat_input("Ask a question about LangChain...")
+if prompt:
+    st.session_state.messages.append({"role": "user", "content": prompt, "sources": []})
+    with st.chat_message("user"):
+        st.markdown(body=prompt)
+
+    with st.chat_message("assistant"):
+        try:
+            with st.spinner("Retrieving docs and generating answer..."):
+                result: Dict[str, Any] = run_llm(prompt)
+                answer = (
+                    str(result.get("answer", "")).strip() or "(No answer returned.)"
+                )
+                sources = _format_sources(result.get("context", []))
+
+            st.markdown(answer)
+            if sources:
+                with st.expander("Sources"):
+                    for s in sources:
+                        st.markdown(f"- {s}")
+
+            st.session_state.messages.append(
+                {"role": "assistant", "content": answer, "sources": sources}
+            )
+
+        except Exception as e:
+            st.error("Failed to generate a response.")
+            st.exception(e)

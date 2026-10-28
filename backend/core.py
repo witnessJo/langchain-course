@@ -1,5 +1,4 @@
 import os
-from annotated_types import doc
 from typing import Any, Dict
 from dotenv import load_dotenv
 from langchain.agents import create_agent
@@ -27,7 +26,7 @@ def retreive_context(query: str):
     # Serialize documents for the model
     serialized = "\n\n".join(
         (
-            f"Source: {doc.metadata.get('source', 'Unknown')}\n\nContent: {doc.page_content}"  # ty: ignore[unresolved-attribute]
+            f"Source: {doc.metadata.get('source', 'Unknown')}\n\nContent: {doc.page_content}"
         )
         for doc in retrieved_docs
     )
@@ -37,21 +36,23 @@ def retreive_context(query: str):
 
 def run_llm(query: str):
     """
-    Run the RAG pipeline to answer a qeury using retrieved documentation.
+    Run the RAG pipeline to answer a query using retrieved documentation.
     Args:
         query: The user's question
 
     Returns:
         Dictionary containing:
                 - answer: The generated answer
-                - context: List of retrieved docuemnts
+                - context: List of retrieved documents
     """
     system_prompt = (
-        "You are a helpful AI assistant that answers questions about LangChain documentation. "
-        "You have access to a tool that retriees relevant documentation. "
-        "Use the tool to find relevant information before answering questions. "
-        "Always cite the sources you use in your answers. "
-        "If you cannot find the answer in the retrieved documentation, say so."
+        "You are a helpful AI assistant that answers questions about LangChain documentation.\n\n"
+        "Instructions:\n"
+        "- Do NOT call any tools for casual greetings or chit-chat (e.g., 'hello', 'hi', 'hey'). "
+        "Simply respond warmly, introducing yourself as the LangChain docs assistant and asking what they would like to know.\n"
+        "- For questions about LangChain concepts, code, or features, use the retreive_context tool to search for relevant documentation before answering.\n"
+        "- Always cite the sources you use in your answers.\n"
+        "- If you cannot find the answer in the retrieved documentation, say so."
     )
 
     agent = create_agent(model, tools=[retreive_context], system_prompt=system_prompt)
@@ -60,7 +61,7 @@ def run_llm(query: str):
     messages = [{"role": "user", "content": query}]
 
     # Invoke the agent
-    response = agent.invoke({"message": messages})
+    response = agent.invoke({"messages": messages})
 
     # Extract the answer from the last AI message
     answer = response["messages"][-1].content
