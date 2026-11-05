@@ -4,9 +4,10 @@ from .config import CHROMA_PERSIST_DIR, ORG_ROAM_DIR, PROJECT_ROOT
 
 
 def main() -> None:
-    print("Hello from langchain-course!")
-    print(f"ORG_ROAM_DIR: {ORG_ROAM_DIR}")
-    print(f"CHROMA_PERSIST_DIR: {CHROMA_PERSIST_DIR}")
+    from .ingestion import ingest_org_roam
+
+    added, removed = ingest_org_roam()
+    print(f"Org-roam ingestion complete: {added} chunks indexed, {removed} removed")
 
 
 __all__ = ["ORG_ROAM_DIR", "CHROMA_PERSIST_DIR", "PROJECT_ROOT", "main"]
