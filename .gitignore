@@ -208,3 +208,6 @@ chroma_db/
 .agents/
 .claude/
 skills/
+
+# Projectile cache
+.projectile-cache.eld
