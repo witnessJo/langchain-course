@@ -13,6 +13,7 @@ load_dotenv()
 # Initialize embeddings (same as ingestion.py)
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
+
 # Initialize vector store
 vectorstore = Chroma(persist_directory="chroma_db", embedding_function=embeddings)
 
