@@ -10,7 +10,9 @@ from .ingestion import COLLECTION_NAME
 
 
 def answer_question(
-    question: str, on_progress: Callable[[str], None] | None = None
+    question: str,
+    k: int = 8,
+    on_progress: Callable[[str], None] | None = None,
 ) -> tuple[str, list[str]]:
     if on_progress:
         on_progress("관련 노트 검색 중...")
@@ -19,7 +21,7 @@ def answer_question(
         persist_directory=str(CHROMA_PERSIST_DIR),
         embedding_function=OpenAIEmbeddings(model="text-embedding-3-small"),
     )
-    documents = vectorstore.similarity_search(question, k=4)
+    documents = vectorstore.similarity_search(question, k=k)
     if not documents:
         return "색인된 노트에서 관련 내용을 찾지 못했습니다.", []
 
