@@ -1,5 +1,7 @@
 """Answer questions using indexed Org-roam notes."""
 
+from collections.abc import Callable
+
 from langchain_chroma import Chroma
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
@@ -7,7 +9,11 @@ from .config import CHROMA_PERSIST_DIR
 from .ingestion import COLLECTION_NAME
 
 
-def answer_question(question: str) -> tuple[str, list[str]]:
+def answer_question(
+    question: str, on_progress: Callable[[str], None] | None = None
+) -> tuple[str, list[str]]:
+    if on_progress:
+        on_progress("관련 노트 검색 중...")
     vectorstore = Chroma(
         collection_name=COLLECTION_NAME,
         persist_directory=str(CHROMA_PERSIST_DIR),
@@ -22,6 +28,8 @@ def answer_question(question: str) -> tuple[str, list[str]]:
         f"[{index}] 출처: {source}\n{document.page_content}"
         for index, (source, document) in enumerate(zip(sources, documents), start=1)
     )
+    if on_progress:
+        on_progress("답변 생성 중...")
     response = ChatOpenAI(model="gpt-5.2").invoke(
         [
             (

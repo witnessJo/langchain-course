@@ -22,7 +22,9 @@ def main() -> None:
         if not question:
             continue
 
-        answer, sources = answer_question(question)
+        answer, sources = answer_question(
+            question, on_progress=lambda message: print(message, flush=True)
+        )
         print(f"\n{answer}")
         if sources:
             print("\n검색된 노트:")
