@@ -1,5 +1,10 @@
 """LangChain Course package."""
 
+try:
+    import readline  # noqa: F401
+except ImportError:
+    pass
+
 from .config import CHROMA_PERSIST_DIR, ORG_ROAM_DIR, PROJECT_ROOT
 
 
