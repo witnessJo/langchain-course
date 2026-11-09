@@ -48,10 +48,8 @@ def answer_question(
     question: str,
     k: int = 8,
     on_progress: Callable[[str], None] | None = None,
+    on_token: Callable[[str], None] | None = None,
 ) -> tuple[str, list[str]]:
-    if on_progress:
-        on_progress("질문 분석 및 계획 수립 중...")
-
     collected_sources: list[str] = []
 
     @tool
@@ -92,14 +90,27 @@ def answer_question(
         HumanMessage(content=question),
     ]
 
-    for _ in range(MAX_ITERATIONS):
-        ai_message = llm_with_tools.invoke(messages)
-        messages.append(ai_message)
+    for iteration in range(MAX_ITERATIONS):
+        if iteration > 0 and on_progress:
+            on_progress("답변 생성 중...")
 
-        tool_calls = ai_message.tool_calls
+        accumulated_message = None
+        for chunk in llm_with_tools.stream(messages):
+            accumulated_message = (
+                chunk if accumulated_message is None else accumulated_message + chunk
+            )
+            if not chunk.tool_calls and chunk.content and on_token:
+                on_token(chunk.content)
+
+        if accumulated_message is None:
+            break
+
+        messages.append(accumulated_message)
+        tool_calls = accumulated_message.tool_calls
+
         if not tool_calls:
             unique_sources = list(dict.fromkeys(collected_sources))
-            return str(ai_message.content), unique_sources
+            return str(accumulated_message.content), unique_sources
 
         for tool_call in tool_calls:
             tool_name = tool_call.get("name")
@@ -117,9 +128,6 @@ def answer_question(
 
             observation = tool_to_use.invoke(tool_call)
             messages.append(observation)
-
-        if on_progress:
-            on_progress("답변 생성 중...")
 
     unique_sources = list(dict.fromkeys(collected_sources))
     return "요청을 처리하는 동안 최대 단계에 도달했습니다.", unique_sources

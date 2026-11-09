@@ -5,26 +5,20 @@ try:
 except ImportError:
     pass
 
-from rich.console import Console
-
 from .config import CHROMA_PERSIST_DIR, ORG_ROAM_DIR, PROJECT_ROOT
-
-console = Console()
 
 
 def main() -> None:
     from .ingestion import ingest_org_roam
     from .qa import answer_question
 
-    with console.status(
-        "[bold green]Org-roam 노트 색인 확인 중...[/bold green]", spinner="dots"
-    ):
-        added, removed = ingest_org_roam()
-    print(f"Org-roam ingestion complete: {added} chunks indexed, {removed} removed")
+    print("[*] Org-roam 노트 색인 확인 중...", flush=True)
+    added, removed = ingest_org_roam()
+    print(f"[*] 색인 완료: {added}개 청크 추가, {removed}개 삭제됨\n", flush=True)
 
     while True:
         try:
-            question = input("\n질문> ").strip()
+            question = input("질문> ").strip()
         except (EOFError, KeyboardInterrupt):
             print()
             break
@@ -34,21 +28,36 @@ def main() -> None:
         if not question:
             continue
 
-        with console.status(
-            "[bold cyan]질문 처리 중...[/bold cyan]", spinner="dots"
-        ) as status:
-            answer, sources = answer_question(
-                question,
-                on_progress=lambda message: status.update(
-                    f"[bold cyan]{message}[/bold cyan]"
-                ),
-            )
+        print("\n[*] 질문을 전송했습니다. 분석 중...", flush=True)
 
-        print(f"\n{answer}")
+        def show_progress(message: str) -> None:
+            print(f"[*] {message}", flush=True)
+
+        token_streamed = False
+
+        def show_token(token: str) -> None:
+            nonlocal token_streamed
+            if not token_streamed:
+                print("\n[답변]", flush=True)
+                token_streamed = True
+            print(token, end="", flush=True)
+
+        answer, sources = answer_question(
+            question,
+            on_progress=show_progress,
+            on_token=show_token,
+        )
+
+        if not token_streamed:
+            print(f"\n[답변]\n{answer}")
+        else:
+            print()
+
         if sources:
             print("\n검색된 노트:")
             for index, source in enumerate(sources, start=1):
                 print(f"[{index}] {source}")
+        print("-" * 50)
 
 
 __all__ = ["ORG_ROAM_DIR", "CHROMA_PERSIST_DIR", "PROJECT_ROOT", "main"]
