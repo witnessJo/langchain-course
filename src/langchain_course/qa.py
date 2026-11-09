@@ -49,6 +49,9 @@ def answer_question(
     k: int = 8,
     on_progress: Callable[[str], None] | None = None,
 ) -> tuple[str, list[str]]:
+    if on_progress:
+        on_progress("질문 분석 및 계획 수립 중...")
+
     collected_sources: list[str] = []
 
     @tool
